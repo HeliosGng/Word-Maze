@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word Maze Escape</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      background: #fff;
+      display: block;
+      margin: 0 auto;
+      border: 2px solid #333;
+    }
+    #questionBox {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #000;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      z-index: 2;
+    }
+    #questionBox button {
+      margin: 5px;
+      padding: 10px 15px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="maze" width="640" height="640"></canvas>
+  <div id="questionBox">
+    <p id="questionText"></p>
+    <div id="answers"></div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("maze");
+    const ctx = canvas.getContext("2d");
+    const gridSize = 40;
+    const rows = 16;
+    const cols = 16;
+
+    const mazes = [
+      {
+        layout: [
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,1],
+          [1,0,1,1,1,0,1,1,0,1,0,1,1,1,0,1],
+          [1,0,1,0,0,0,0,1,0,1,0,0,0,1,0,1],
+          [1,0,1,1,1,1,0,1,0,1,1,1,0,1,0,1],
+          [1,0,0,0,0,1,0,1,0,0,0,1,0,1,0,1],
+          [1,1,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+          [1,0,0,1,0,1,0,0,0,1,0,1,0,1,0,1],
+          [1,0,1,1,0,1,1,1,0,1,0,1,0,0,0,1],
+          [1,0,0,0,0,0,0,1,0,1,0,1,1,1,0,1],
+          [1,1,1,1,1,1,0,1,0,1,0,0,0,1,0,1],
+          [1,0,0,0,0,1,0,1,0,1,1,1,0,1,0,1],
+          [1,0,1,1,0,1,0,1,0,0,0,1,0,1,0,1],
+          [1,0,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+          [1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        ],
+        doors: {
+          "4,1": {
+            question: "What is the past tense of 'go'?",
+            options: ["Goed", "Went", "Gone"],
+            correct: "Went", asked: false
+          },
+          "12,3": {
+            question: "Which is a noun?",
+            options: ["Run", "Happiness", "Quickly"],
+            correct: "Happiness", asked: false
+          },
+          "6,7": {
+            question: "Choose the correct article: '___ apple'",
+            options: ["A", "An", "The"],
+            correct: "An", asked: false
+          },
+
+        },
+        player: { x: 1, y: 1 },
+        exit: { x: 14, y: 14 }
+      },
+      {
+        layout: [
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+          [1,0,1,1,1,0,1,1,0,1,1,1,1,1,0,1],
+          [1,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1],
+          [1,1,1,0,1,1,0,1,0,1,1,1,0,1,0,1],
+          [1,0,0,0,0,1,0,1,0,0,0,1,0,1,0,1],
+          [1,0,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+          [1,0,1,0,0,1,0,0,0,0,0,1,0,1,0,1],
+          [1,0,1,1,1,1,1,1,0,1,0,1,0,0,0,1],
+          [1,0,0,0,0,0,0,1,0,1,0,1,1,1,0,1],
+          [1,1,1,1,1,1,0,1,0,1,0,0,0,1,0,1],
+          [1,0,0,0,0,1,0,1,0,1,1,1,0,1,0,1],
+          [1,0,1,1,0,1,0,1,0,0,0,1,0,1,0,1],
+          [1,0,1,0,0,1,0,1,1,1,0,1,0,1,0,1],
+          [1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        ],
+        doors: {
+          "3,1": {
+            question: "What is the opposite of 'happy'?",
+            options: ["Sad", "Joyful", "Angry"],
+            correct: "Sad", asked: false
+          },
+          "11,1": {
+            question: "What is a synonym for 'fast'?",
+            options: ["Quick", "Slow", "Lazy"],
+            correct: "Quick", asked: false
+          },
+          "7,7": {
+            question: "Which one is a verb?",
+            options: ["Run", "Blue", "Idea"],
+            correct: "Run", asked: false
+          }
+        },
+        player: { x: 1, y: 1 },
+        exit: { x: 14, y: 14 }
+      },
+      {
+        layout: [
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
+          [1,1,1,0,1,0,1,1,1,0,1,0,1,1,0,1],
+          [1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1],
+          [1,0,1,1,1,1,1,0,1,1,1,1,0,1,0,1],
+          [1,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1],
+          [1,0,1,0,1,0,1,1,1,1,0,1,1,1,0,1],
+          [1,0,1,0,1,0,0,0,0,1,0,0,0,1,0,1],
+          [1,0,1,0,1,1,1,1,0,1,1,1,0,1,0,1],
+          [1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,1],
+          [1,0,1,1,1,1,0,1,1,1,0,1,0,1,0,1],
+          [1,0,0,0,0,1,0,0,0,1,0,1,0,1,0,1],
+          [1,1,1,1,0,1,1,1,0,1,0,1,0,1,0,1],
+          [1,0,0,1,0,0,0,0,0,1,0,0,0,1,0,1],
+          [1,0,0,0,0,1,1,1,1,1,1,1,1,1,0,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        ],
+        doors: {
+          "5,1": {
+            question: "I missed the bus. I should have ___ earlier.",
+            options: ["get ready", "gotten ready", "ready"],
+            correct: "gotten ready", asked: false
+          },
+          "11,1": {
+            question: "Which is a preposition?",
+            options: ["Under", "Run", "Cat"],
+            correct: "Under", asked: false
+          },
+          "7,7": {
+            question: "What is the plural of 'mouse'?",
+            options: ["Mouses", "Mice", "Mouse"],
+            correct: "Mice", asked: false
+          }
+        },
+        player: { x: 1, y: 1 },
+          exit: { x: 14, y: 14 },
+
+      },
+      {
+  layout: [  
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,1,0,0,0,1,1,0,0,1],
+        [1,0,1,1,0,1,0,1,0,1,0,1,1,1,0,1],
+        [1,0,1,0,0,1,0,1,0,1,0,0,0,1,0,1],
+        [1,0,1,1,0,1,1,1,0,1,1,1,0,1,0,1],
+        [1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,1],
+        [1,1,1,1,1,1,0,1,1,1,0,1,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1],
+        [1,0,1,1,1,1,1,1,0,1,0,1,0,1,0,1],
+        [1,0,1,0,0,0,0,1,0,0,0,1,0,1,0,1],
+        [1,0,1,0,1,1,0,1,1,1,1,1,0,1,0,1],
+        [1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1],
+        [1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,1],
+        [1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,1],
+        [1,0,1,1,1,0,1,1,1,1,1,1,1,1,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  ],
+  doors: {
+    "4,1": {
+      question: "What's the plural of 'child'?",
+      options: ["Childs", "Children", "Childes"],
+      correct: "Children", asked: false
+    },
+    "10,3": {
+      question: "What is the synonym for 'happy'?",
+      options: ["Sad", "Glad", "Angry"],
+      correct: "Glad", asked: false
+    },
+    "7,7": {
+      question: "Pick the adjective:",
+      options: ["Run", "Fast", "Happily"],
+      correct: "Fast", asked: false
+    }
+  },
+  player: { x: 1, y: 1 },
+  exit: { x: 14, y: 14 }
+}
+    ];
+
+    let level = 0;
+
+    function drawMaze() {
+      const { layout, doors, player, exit } = mazes[level];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          if (layout[y][x] === 1) {
+            ctx.fillStyle = "#999";
+            ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+          }
+        }
+      }
+
+      for (const key in doors) {
+        const [x, y] = key.split(',').map(Number);
+        ctx.fillStyle = "brown";
+        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+      }
+
+      ctx.fillStyle = "green";
+      ctx.fillRect(exit.x * gridSize, exit.y * gridSize, gridSize, gridSize);
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(
+        player.x * gridSize + gridSize / 2,
+        player.y * gridSize + gridSize / 2,
+        gridSize / 2.5,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    function movePlayer(dx, dy) {
+      const { layout, doors, player, exit } = mazes[level];
+      const newX = player.x + dx;
+      const newY = player.y + dy;
+      if (layout[newY][newX] === 0) {
+        player.x = newX;
+        player.y = newY;
+        drawMaze();
+
+        const doorKey = `${player.x},${player.y}`;
+        if (doors[doorKey] && !doors[doorKey].asked) {
+          showQuestion(doorKey);
+        }
+
+        if (player.x === exit.x && player.y === exit.y) {
+          if (level < mazes.length - 1) {
+            setTimeout(() => {
+              alert("✅ Level complete! Moving to next level...");
+              level++;
+              drawMaze();
+            }, 200);
+          } else {
+            setTimeout(() => alert("🏆 Congratulations! You've finished all levels!"), 200);
+          }
+        }
+      }
+    }
+
+    function showQuestion(doorKey) {
+      const door = mazes[level].doors[doorKey];
+      const box = document.getElementById("questionBox");
+      const text = document.getElementById("questionText");
+      const answers = document.getElementById("answers");
+
+      text.textContent = door.question;
+      answers.innerHTML = "";
+      door.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.onclick = () => {
+          if (option === door.correct) {
+            box.style.display = "none";
+            door.asked = true;
+          } else {
+            alert("❌ Wrong answer! Game restarting...");
+            location.reload();
+          }
+        };
+        answers.appendChild(btn);
+      });
+      box.style.display = "block";
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (document.getElementById("questionBox").style.display === "block") return;
+      switch (e.key) {
+        case "ArrowUp": movePlayer(0, -1); break;
+        case "ArrowDown": movePlayer(0, 1); break;
+        case "ArrowLeft": movePlayer(-1, 0); break;
+        case "ArrowRight": movePlayer(1, 0); break;
+      }
+    });
+
+    drawMaze();
+  </script>
+</body>
+</html>
